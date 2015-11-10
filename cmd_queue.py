@@ -6,40 +6,40 @@ I hacked this up for running sound for a show off of linux, since I
 (sort of surprisingly, to me) couldn't find any decent software to
 do this."""
 
-# I am not proud of any of this code.
-
 import sys
 import os
-import tty, termios
+import curses
 
-def run(cmds, old):
+def run(stdscr, cmds):
     cmds += [""]
     current = 0
 
+    curses.def_prog_mode()
+
     while True:
-        os.system('clear') # lurr.
-        tty.setraw(sys.stdout.fileno())
+        stdscr.clear()
+        stdscr.move(0, 0)
 
         for i, cmd in enumerate(cmds):
             marker = " * " if current == i else "   "
-            print(marker + cmd, end='\r\n')
+            stdscr.addstr(marker + cmd + '\n')
+        stdscr.refresh()
 
-        s = sys.stdin.read(1)
+        c = stdscr.getch()
+        s = chr(c)
 
-        # A, B, C, D get sent in as the second key for the arrows...
-        # XXX: This is no way to run a railway
-        if s == 'n' or s == 'B' or s == 'C':
+        if s == 'n' or c == curses.KEY_DOWN or c == curses.KEY_RIGHT:
             if current + 1 < len(cmds):
                 current += 1
-        elif s == 'p' or s == 'A' or s == 'D':
+        elif s == 'p' or c == curses.KEY_UP or c == curses.KEY_LEFT:
             if current > 0:
                 current -= 1
-        elif s == ' ' or s == '\r':
+        elif s == ' ' or s == '\n':
             if current + 1 == len(cmds): continue
 
-            # Leave raw mode so the command we are running works right
-            termios.tcsetattr(sys.stdout.fileno(), termios.TCSADRAIN, old)
+            curses.reset_shell_mode()
             os.system(cmds[current])
+            curses.reset_prog_mode()
 
             current += 1
         elif s == 'q':
@@ -50,13 +50,8 @@ def main(args):
     with open(args[1]) as f:
         lines = [line.strip() for line in f]
     cmds = [x for x in lines if x and x[0] != '#']
-    old = termios.tcgetattr(sys.stdout.fileno())
 
-    try:
-        run(cmds, old)
-    finally:
-        termios.tcsetattr(sys.stdout.fileno(), termios.TCSADRAIN, old)
-
+    curses.wrapper(run, cmds)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
