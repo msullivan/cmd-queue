@@ -10,9 +10,23 @@ import sys
 import os
 import curses
 
+def cmd_empty(s):
+    return not s or s[0] == '#'
+
+def inrange(cmds, idx):
+    return idx >= 0 and idx < len(cmds)
+
+def move(cmds, current, direction):
+    if not inrange(cmds, current+direction): return current
+    current += direction
+    while cmd_empty(cmds[current]) and inrange(cmds, current+direction):
+        current += direction
+    return current
+
+
 def run(stdscr, cmds):
     cmds += [""]
-    current = 0
+    current = move(cmds, -1, 1)
 
     curses.def_prog_mode()
 
@@ -23,33 +37,30 @@ def run(stdscr, cmds):
         for i, cmd in enumerate(cmds):
             marker = " * " if current == i else "   "
             stdscr.addstr(marker + cmd + '\n')
+        stdscr.addstr("-------------------------------------------------\n\n")
+
         stdscr.refresh()
 
         c = stdscr.getch()
         s = chr(c)
 
         if s == 'n' or c == curses.KEY_DOWN or c == curses.KEY_RIGHT:
-            if current + 1 < len(cmds):
-                current += 1
+            current = move(cmds, current, +1)
         elif s == 'p' or c == curses.KEY_UP or c == curses.KEY_LEFT:
-            if current > 0:
-                current -= 1
+            current = move(cmds, current, -1)
         elif s == ' ' or s == '\n':
-            if current + 1 == len(cmds): continue
-
             curses.reset_shell_mode()
             os.system(cmds[current])
             curses.reset_prog_mode()
 
-            current += 1
+            current = move(cmds, current, +1)
         elif s == 'q':
             break
 
 
 def main(args):
     with open(args[1]) as f:
-        lines = [line.strip() for line in f]
-    cmds = [x for x in lines if x and x[0] != '#']
+        cmds = [line.strip() for line in f]
 
     curses.wrapper(run, cmds)
 
