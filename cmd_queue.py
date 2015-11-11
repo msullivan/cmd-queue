@@ -10,6 +10,12 @@ import sys
 import os
 import curses
 
+# XXX: This should get loaded from the file or something
+extra_bindings = {
+    'H': 'mplayer horn.mp3',
+    'M': 'killall mplayer',
+}
+
 def cmd_empty(s):
     return not s or s[0] == '#'
 
@@ -22,6 +28,11 @@ def move(cmds, current, direction):
     while cmd_empty(cmds[current]) and inrange(cmds, current+direction):
         current += direction
     return current
+
+def system(s):
+    curses.reset_shell_mode()
+    os.system(s)
+    curses.reset_prog_mode()
 
 
 def run(stdscr, cmds):
@@ -49,13 +60,12 @@ def run(stdscr, cmds):
         elif s == 'p' or c == curses.KEY_UP or c == curses.KEY_LEFT:
             current = move(cmds, current, -1)
         elif s == ' ' or s == '\n':
-            curses.reset_shell_mode()
-            os.system(cmds[current])
-            curses.reset_prog_mode()
-
+            system(cmds[current])
             current = move(cmds, current, +1)
         elif s == 'q':
             break
+        elif s in extra_bindings:
+            system(extra_bindings[s])
 
 
 def main(args):
