@@ -62,8 +62,6 @@ def run(stdscr, cmds):
         elif s == ' ' or s == '\n':
             system(cmds[current])
             current = move(cmds, current, +1)
-        elif s == 'q':
-            break
         elif s in extra_bindings:
             system(extra_bindings[s])
 
