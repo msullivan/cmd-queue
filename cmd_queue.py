@@ -55,9 +55,9 @@ def run(stdscr, cmds):
         c = stdscr.getch()
         s = chr(c)
 
-        if s == 'n' or c == curses.KEY_DOWN or c == curses.KEY_RIGHT:
+        if s == 'n' or s == 'j' or c == curses.KEY_DOWN or c == curses.KEY_RIGHT:
             current = move(cmds, current, +1)
-        elif s == 'p' or c == curses.KEY_UP or c == curses.KEY_LEFT:
+        elif s == 'p' or s == 'k' or c == curses.KEY_UP or c == curses.KEY_LEFT:
             current = move(cmds, current, -1)
         elif s == ' ' or s == '\n':
             system(cmds[current])
