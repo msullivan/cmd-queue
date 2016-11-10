@@ -13,6 +13,7 @@ import curses
 # XXX: This should get loaded from the file or something
 extra_bindings = {
     'H': 'mplayer horn.mp3',
+    'L': 'mplayer laughtrack.wav',
     'M': 'killall mplayer',
 }
 
